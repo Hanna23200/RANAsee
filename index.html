@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RN See</title>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Prompt', sans-serif;
+      background: #0d1117;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    header {
+      background: #161b22;
+      padding: 15px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #58a6ff;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .auth-box {
+      background: #21262d;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+    }
+    button {
+      background: #238636;
+      color: white;
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2ea043;
+    }
+    #dashboard {
+      display: none;
+      width: 100%;
+      max-width: 1200px;
+    }
+    #logoutBtn {
+      display: none;
+      background: #d73a49;
+    }
+    footer {
+      background: #161b22;
+      padding: 10px;
+      text-align: center;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <header>📈 RN See – Real-time Market Charts</header>
+
+  <main>
+    <!-- 🔹 กล่อง Login/Register -->
+    <div id="auth-section" class="auth-box">
+      <h2>เข้าสู่ระบบ / สมัครสมาชิก</h2>
+      <input type="email" id="email" placeholder="อีเมล" required><br>
+      <input type="password" id="password" placeholder="รหัสผ่าน" required><br>
+      <button id="loginBtn">เข้าสู่ระบบ</button>
+      <button id="registerBtn">สมัครสมาชิก</button>
+    </div>
+
+    <!-- 🔹 Dashboard หลัง Login -->
+    <div id="dashboard">
+      <h2>ยินดีต้อนรับสู่ RN See 🚀</h2>
+      <div id="chart-container">
+        <!-- TradingView Widget -->
+        <div class="tradingview-widget-container">
+          <div id="tradingview_candles"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+          <script type="text/javascript">
+            new TradingView.widget({
+              "width": "100%",
+              "height": 600,
+              "symbol": "NASDAQ:AAPL",   // ค่าเริ่มต้น (Apple)
+              "interval": "D",
+              "timezone": "Asia/Bangkok",
+              "theme": "dark",
+              "style": "1",
+              "locale": "th",
+              "toolbar_bg": "#f1f3f6",
+              "enable_publishing": false,
+              "withdateranges": true,
+              "hide_side_toolbar": false,
+              "allow_symbol_change": true,
+              "container_id": "tradingview_candles"
+            });
+          </script>
+        </div>
+      </div>
+      <button id="logoutBtn">ออกจากระบบ</button>
+    </div>
+  </main>
+
+  <footer>© 2025 RN See | Powered by Firebase & TradingView</footer>
+
+  <!-- ✅ Firebase Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+             onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+
+    // 🔹 Config ของภัควลัญชณ์
+    const firebaseConfig = {
+      apiKey: "AIzaSyARgIM2snD7TXJ_NHdDsRLA3yvnu_jn5Aw",
+      authDomain: "rnsee-627bd.firebaseapp.com",
+      projectId: "rnsee-627bd",
+      storageBucket: "rnsee-627bd.firebasestorage.app",
+      messagingSenderId: "858735997816",
+      appId: "1:858735997816:web:c33d60adf183ec273fce8d",
+      measurementId: "G-C1NX0JDW2L"
+    };
+
+    // Init Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // สมัครสมาชิก
+    document.getElementById("registerBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      createUserWithEmailAndPassword(auth, email, password)
+        .then(() => alert("✅ สมัครสมาชิกสำเร็จ!"))
+        .catch(err => alert("❌ " + err.message));
+    });
+
+    // ล็อกอิน
+    document.getElementById("loginBtn").addEventListener("click", () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      signInWithEmailAndPassword(auth, email, password)
+        .catch(err => alert("❌ " + err.message));
+    });
+
+    // ออกจากระบบ
+    document.getElementById("logoutBtn").addEventListener("click", () => signOut(auth));
+
+    // ตรวจสอบสถานะ
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("auth-section").style.display = "none";
+        document.getElementById("dashboard").style.display = "block";
+        document.getElementById("logoutBtn").style.display = "inline-block";
+      } else {
+        document.getElementById("auth-section").style.display = "block";
+        document.getElementById("dashboard").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
